@@ -1,0 +1,60 @@
+package com.mehei.app.navigation
+
+import kotlinx.serialization.Serializable
+
+/**
+ * Type-safe navigation routes for MEHEI.
+ * Using Compose Navigation 2.8+ @Serializable pattern.
+ */
+
+@Serializable
+data object ExploreRoute
+
+@Serializable
+data object FlashSlotsRoute
+
+@Serializable
+data class ArtistDetailRoute(val artistId: String)
+
+@Serializable
+data class BookingCalculatorRoute(val artistId: String)
+
+@Serializable
+data class BookingConfirmRoute(val bookingId: String)
+
+@Serializable
+data object LoginRoute
+
+@Serializable
+data object ProfileSetupRoute
+
+@Serializable
+data class CheckoutRoute(val artistId: String, val depositAmount: Int)
+
+@Serializable
+data object BookingsHistoryRoute
+
+@Serializable
+data object ProfileRoute
+
+@Serializable
+data object SettingsRoute
+
+@Serializable
+data object FavoritesRoute
+
+// --- Artist Routes ---
+
+@Serializable
+data object ArtistDashboardRoute
+
+@Serializable
+data class ArtistBookingDetailRoute(val bookingId: String)
+
+@Serializable
+data object ArtistPortfolioRoute
+
+// --- Chat Routes ---
+
+@Serializable
+data class ChatRoute(val bookingId: String, val otherUserName: String)
