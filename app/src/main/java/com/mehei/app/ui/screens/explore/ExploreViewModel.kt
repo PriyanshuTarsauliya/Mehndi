@@ -16,14 +16,16 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.mehei.app.domain.usecase.GetArtistsUseCase
 import com.mehei.app.domain.repository.FavoritesRepository
+import com.mehei.app.data.local.TokenManager
 
 @HiltViewModel
 class ExploreViewModel @Inject constructor(
     private val getArtistsUseCase: GetArtistsUseCase,
-    private val favoritesRepository: FavoritesRepository
+    private val favoritesRepository: FavoritesRepository,
+    private val tokenManager: TokenManager
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(ExploreState())
+    private val _state = MutableStateFlow(ExploreState(userName = tokenManager.getUserName()))
     val state: StateFlow<ExploreState> = _state.asStateFlow()
 
     private val _effects = MutableSharedFlow<ExploreEffect>()

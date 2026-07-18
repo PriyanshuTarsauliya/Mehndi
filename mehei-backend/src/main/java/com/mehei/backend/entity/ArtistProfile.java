@@ -32,4 +32,17 @@ public class ArtistProfile {
 
     @Column(name = "is_available", nullable = false)
     private boolean available = true;
+
+    // Uber-like Tracking
+    @Column(name = "is_online", nullable = false)
+    private boolean isOnline = false;
+
+    @Column(name = "current_lat")
+    private Double currentLat;
+
+    @Column(name = "current_lng")
+    private Double currentLng;
+
+    @Column(name = "fcm_token")
+    private String fcmToken;
 }

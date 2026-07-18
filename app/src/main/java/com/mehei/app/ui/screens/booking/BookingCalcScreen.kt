@@ -43,7 +43,7 @@ fun BookingCalcScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Booking Calculator", fontWeight = FontWeight.Bold) },
+                title = { Text("Request Mehendi", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -76,7 +76,12 @@ fun BookingCalcScreen(
                             modifier = Modifier.padding(horizontal = 4.dp),
                         )
                         Button(
-                            onClick = { onEvent(BookingCalcEvent.ConfirmBooking) },
+                            onClick = { 
+                                // In Uber-like flow, this broadcasts the request
+                                isFindingArtist = true
+                                // We simulate finding an artist for 3 seconds then confirming
+                                // onEvent(BookingCalcEvent.ConfirmBooking) 
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(56.dp),
@@ -87,7 +92,7 @@ fun BookingCalcScreen(
                             )
                         ) {
                             Text(
-                                text = "CONFIRM & BOOK · ₹${state.priceEstimate?.deposit ?: 0} DEPOSIT",
+                                text = "REQUEST ARTIST NOW · ₹${state.priceEstimate?.deposit ?: 0} DEPOSIT",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                             )
@@ -99,6 +104,8 @@ fun BookingCalcScreen(
         modifier = modifier,
     ) { innerPadding ->
         if (artist == null) {
+            // Uber-like flow: Even without a specific artist, we could show standard rates.
+            // For now, we still wait for the ViewModel to load the 'standard' rates.
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -110,6 +117,31 @@ fun BookingCalcScreen(
             return@Scaffold
         }
 
+        // Add a Finding Artist dialog state
+        var isFindingArtist by remember { mutableStateOf(false) }
+
+        if (isFindingArtist) {
+            AlertDialog(
+                onDismissRequest = { isFindingArtist = false },
+                title = { Text("Finding nearby artists...") },
+                text = { 
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        CircularProgressIndicator()
+                        Text("Broadcasting your request to available artists in your area. Please wait...", textAlign = TextAlign.Center)
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { isFindingArtist = false }) {
+                        Text("Cancel Request")
+                    }
+                }
+            )
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -119,12 +151,12 @@ fun BookingCalcScreen(
                 .padding(horizontal = 16.dp, vertical = 24.dp),
             verticalArrangement = Arrangement.spacedBy(32.dp), // Wider spacing for "Sleek" aesthetic
         ) {
-            // Artist Header
-            ArtistHeader(
-                name = artist.name,
-                rating = artist.rating,
-                tier = artist.tier.name,
-            )
+            // Artist Header is hidden in On-Demand mode until a match is found
+            // ArtistHeader(
+            //     name = artist.name,
+            //     rating = artist.rating,
+            //     tier = artist.tier.name,
+            // )
 
             // Large Prominent Price Display
             Column(

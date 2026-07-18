@@ -27,8 +27,11 @@ fun BookingsHistoryScreen(
     modifier: Modifier = Modifier,
 ) {
     val upcomingBookings = state.bookings.filter {
-        it.status == BookingStatus.PENDING || 
-        it.status == BookingStatus.CONFIRMED || 
+        it.status == BookingStatus.REQUESTED ||
+        it.status == BookingStatus.MATCHING ||
+        it.status == BookingStatus.ACCEPTED || 
+        it.status == BookingStatus.ON_THE_WAY ||
+        it.status == BookingStatus.ARRIVED ||
         it.status == BookingStatus.IN_PROGRESS
     }
     val pastBookings = state.bookings.filter {

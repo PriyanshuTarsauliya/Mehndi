@@ -63,7 +63,7 @@ class ArtistBookingDetailViewModel @Inject constructor(
     val effects: SharedFlow<ArtistBookingDetailEffect> = _effects.asSharedFlow()
 
     fun acceptBooking() {
-        updateStatus(BookingStatus.CONFIRMED, "Booking Accepted!")
+        updateStatus(BookingStatus.ACCEPTED, "Booking Accepted!")
     }
 
     fun declineBooking() {

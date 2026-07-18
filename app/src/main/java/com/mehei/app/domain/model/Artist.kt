@@ -28,6 +28,9 @@ data class Artist(
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
     val distanceKm: Float? = null,   // Calculated from user's live location
+    // Uber-like tracking
+    val isOnline: Boolean = false,
+    val fcmToken: String? = null,
 )
 
 @Serializable

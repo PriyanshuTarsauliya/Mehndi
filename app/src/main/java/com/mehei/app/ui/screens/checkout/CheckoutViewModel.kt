@@ -9,6 +9,8 @@ import com.mehei.app.domain.model.Booking
 import com.mehei.app.domain.model.BookingStatus
 import com.mehei.app.domain.model.Complexity
 import com.mehei.app.domain.model.EventType
+import com.mehei.app.domain.model.PaymentMethod
+import com.mehei.app.domain.model.RefundStatus
 import com.mehei.app.domain.usecase.CreateBookingUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -31,6 +33,15 @@ data class CheckoutState(
     val landmark: String = "",
     val isProcessing: Boolean = false,
     val error: String? = null,
+    // Payment Method
+    val selectedPaymentMethod: PaymentMethod = PaymentMethod.UPI,
+    // Coupon
+    val couponCode: String = "",
+    val couponDiscount: Int = 0,
+    val isCouponApplied: Boolean = false,
+    val couponError: String? = null,
+    // Tip
+    val tipAmount: Int = 0,
 )
 
 sealed interface CheckoutEvent {
@@ -38,6 +49,11 @@ sealed interface CheckoutEvent {
     data class LandmarkChanged(val landmark: String) : CheckoutEvent
     data class DateChanged(val date: String) : CheckoutEvent
     data class TimeChanged(val time: String) : CheckoutEvent
+    data class PaymentMethodChanged(val method: PaymentMethod) : CheckoutEvent
+    data class CouponChanged(val code: String) : CheckoutEvent
+    data object ApplyCoupon : CheckoutEvent
+    data object RemoveCoupon : CheckoutEvent
+    data class TipChanged(val amount: Int) : CheckoutEvent
     data object ConfirmPayment : CheckoutEvent
 }
 
@@ -68,6 +84,14 @@ class CheckoutViewModel @Inject constructor(
     
     private var pendingBookingId: String? = null
 
+    // Hardcoded valid coupons for demo
+    private val validCoupons = mapOf(
+        "MEHEI50" to 50,
+        "FIRST100" to 100,
+        "BRIDAL200" to 200,
+        "HENNA20" to 20,
+    )
+
     init {
         viewModelScope.launch {
             paymentEventManager.paymentResults.collect { result ->
@@ -91,7 +115,41 @@ class CheckoutViewModel @Inject constructor(
             is CheckoutEvent.LandmarkChanged -> _state.update { it.copy(landmark = event.landmark) }
             is CheckoutEvent.DateChanged -> _state.update { it.copy(selectedDate = event.date) }
             is CheckoutEvent.TimeChanged -> _state.update { it.copy(selectedTime = event.time) }
+            is CheckoutEvent.PaymentMethodChanged -> _state.update { it.copy(selectedPaymentMethod = event.method) }
+            is CheckoutEvent.CouponChanged -> _state.update { it.copy(couponCode = event.code, couponError = null) }
+            is CheckoutEvent.ApplyCoupon -> applyCoupon()
+            is CheckoutEvent.RemoveCoupon -> removeCoupon()
+            is CheckoutEvent.TipChanged -> _state.update { it.copy(tipAmount = event.amount) }
             is CheckoutEvent.ConfirmPayment -> initiatePayment()
+        }
+    }
+
+    private fun applyCoupon() {
+        val code = _state.value.couponCode.trim().uppercase()
+        val discount = validCoupons[code]
+        if (discount != null) {
+            val actualDiscount = discount.coerceAtMost(_state.value.depositAmount)
+            _state.update {
+                it.copy(
+                    couponCode = code,
+                    couponDiscount = actualDiscount,
+                    isCouponApplied = true,
+                    couponError = null,
+                )
+            }
+        } else {
+            _state.update { it.copy(couponError = "Invalid coupon code") }
+        }
+    }
+
+    private fun removeCoupon() {
+        _state.update {
+            it.copy(
+                couponCode = "",
+                couponDiscount = 0,
+                isCouponApplied = false,
+                couponError = null,
+            )
         }
     }
 
@@ -106,8 +164,9 @@ class CheckoutViewModel @Inject constructor(
 
         _state.update { it.copy(isProcessing = true, error = null) }
         viewModelScope.launch {
-            // Amount in paise (multiply by 100)
-            val amountPaise = current.depositAmount * 100
+            // Calculate final amount: deposit - coupon + tip, in paise
+            val finalAmount = (current.depositAmount - current.couponDiscount + current.tipAmount).coerceAtLeast(1)
+            val amountPaise = finalAmount * 100
             _effects.emit(CheckoutEffect.LaunchRazorpay(amountPaise))
         }
     }
@@ -128,8 +187,13 @@ class CheckoutViewModel @Inject constructor(
             eventType = EventType.PARTY,
             totalPrice = (current.depositAmount * 100) / 30, // Back-compute from 30% deposit
             deposit = current.depositAmount,
-            status = BookingStatus.CONFIRMED,
-            customerNote = "Payment ID: $paymentId | ${current.landmark}",
+            status = BookingStatus.ACCEPTED,
+            customerNote = "${current.landmark}",
+            paymentMethod = current.selectedPaymentMethod,
+            depositPaymentId = paymentId,
+            tipAmount = current.tipAmount,
+            couponCode = if (current.isCouponApplied) current.couponCode else null,
+            couponDiscount = current.couponDiscount,
         )
         try {
             when (val result = createBookingUseCase(booking)) {

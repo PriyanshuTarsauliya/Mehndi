@@ -20,10 +20,12 @@ import androidx.navigation.compose.rememberNavController
 import com.mehei.app.navigation.BottomNavItem
 import com.mehei.app.navigation.BookingsHistoryRoute
 import com.mehei.app.navigation.ExploreRoute
+import com.mehei.app.navigation.LoginRoute
 import com.mehei.app.navigation.MeheiNavHost
 import com.mehei.app.navigation.ProfileRoute
 import com.mehei.app.ui.components.MeheiBottomBar
 import com.mehei.app.ui.theme.MeheiTheme
+import com.mehei.app.data.local.TokenManager
 import com.mehei.app.payment.PaymentEventManager
 import com.mehei.app.payment.PaymentResult
 import com.razorpay.Checkout
@@ -37,6 +39,9 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
 
     @Inject
     lateinit var paymentEventManager: PaymentEventManager
+
+    @Inject
+    lateinit var tokenManager: TokenManager
 
     // Top-level routes where the bottom bar should be visible
     private val topLevelRoutes = setOf(
@@ -54,6 +59,7 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
         enableEdgeToEdge()
         setContent {
             MeheiTheme {
+                val startDestination = if (tokenManager.getToken() != null) ExploreRoute else LoginRoute
                 val navController = rememberNavController()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 
@@ -95,6 +101,7 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                 ) { innerPadding ->
                     MeheiNavHost(
                         navController = navController,
+                        startDestination = startDestination,
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(innerPadding),

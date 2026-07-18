@@ -26,12 +26,29 @@ data class Booking(
     val materialFee: Int = 0,      // Artist-supplied organic henna
     val status: BookingStatus,
     val customerNote: String = "",
+    // Uber-like Tracking Fields
+    val clientLatitude: Double = 0.0,
+    val clientLongitude: Double = 0.0,
+    val artistLatitude: Double? = null,
+    val artistLongitude: Double? = null,
+    // Payment Tracking
+    val paymentMethod: PaymentMethod = PaymentMethod.UPI,
+    val depositPaymentId: String? = null,   // Razorpay payment ID for deposit
+    val remainingPaymentId: String? = null,  // Razorpay payment ID for balance
+    val tipAmount: Int = 0,                  // Optional tip in INR
+    val couponCode: String? = null,
+    val couponDiscount: Int = 0,             // INR discount from coupon
+    val refundAmount: Int = 0,               // INR refunded
+    val refundStatus: RefundStatus = RefundStatus.NONE,
 )
 
 @Serializable
 enum class BookingStatus {
-    PENDING,       // Awaiting artist confirmation
-    CONFIRMED,     // Artist accepted, deposit paid
+    REQUESTED,     // Broadcasted to nearby artists
+    MATCHING,      // System finding an artist
+    ACCEPTED,      // Artist accepted
+    ON_THE_WAY,    // Artist is traveling to client
+    ARRIVED,       // Artist has arrived at client location
     IN_PROGRESS,   // Session underway
     COMPLETED,     // Session done, pending review
     CANCELLED,     // Cancelled by customer or artist

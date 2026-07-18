@@ -16,8 +16,12 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -68,6 +72,35 @@ fun ArtistDashboardScreen(
                         containerColor = MaterialTheme.colorScheme.background,
                     ),
                 )
+                
+                // Uber-like Online Toggle
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Text("Status", fontWeight = FontWeight.SemiBold)
+                            Text(
+                                text = if (state.isOnline) "Online - Ready for Requests" else "Offline",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (state.isOnline) com.mehei.app.ui.theme.MeheiSuccess else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Switch(
+                            checked = state.isOnline,
+                            onCheckedChange = { viewModel.onEvent(ArtistDashboardEvent.ToggleOnlineStatus(it)) }
+                        )
+                    }
+                }
+
                 PrimaryTabRow(
                     selectedTabIndex = state.selectedTab,
                     containerColor = MaterialTheme.colorScheme.background,
@@ -160,6 +193,56 @@ fun ArtistDashboardScreen(
                 }
             }
         }
+    }
+
+    // Incoming Request Overlay
+    state.incomingRequest?.let { request ->
+        var timeRemaining by remember { mutableStateOf(15) }
+        
+        LaunchedEffect(request.id) {
+            while (timeRemaining > 0) {
+                kotlinx.coroutines.delay(1000)
+                timeRemaining--
+            }
+            if (timeRemaining == 0) {
+                viewModel.onEvent(ArtistDashboardEvent.DeclineRequest)
+            }
+        }
+        
+        AlertDialog(
+            onDismissRequest = { /* Cannot dismiss without action */ },
+            title = {
+                Text(
+                    text = "New Booking Request!",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Time to accept: $timeRemaining seconds", color = com.mehei.app.ui.theme.MeheiError, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Customer: ${request.customerName}", fontWeight = FontWeight.Medium)
+                    Text("Hands: ${request.numHands} | Type: ${request.eventType.name}")
+                    Text("Complexity: ${request.complexity.name}")
+                    Text("Est. Earnings: ₹${request.estimatedPrice}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { viewModel.onEvent(ArtistDashboardEvent.AcceptRequest) },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Text("Accept Request")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.onEvent(ArtistDashboardEvent.DeclineRequest) }) {
+                    Text("Decline")
+                }
+            }
+        )
     }
 }
 

@@ -31,7 +31,7 @@ class MockBookingRepositoryImpl @Inject constructor() : BookingRepository {
             eventType = EventType.KARVA_CHAUTH,
             totalPrice = 3500,
             deposit = 1050,
-            status = BookingStatus.CONFIRMED,
+            status = BookingStatus.ACCEPTED,
             customerNote = "Please bring extra organic henna cones."
         ),
         Booking(
@@ -79,7 +79,7 @@ class MockBookingRepositoryImpl @Inject constructor() : BookingRepository {
             eventType = EventType.ENGAGEMENT,
             totalPrice = 12000,
             deposit = 3600,
-            status = BookingStatus.PENDING,
+            status = BookingStatus.REQUESTED,
             customerNote = "Need bridal mehendi for morning event."
         )
     )

@@ -64,8 +64,10 @@ fun ExploreScreen(
     state: ExploreState,
     onEvent: (ExploreEvent) -> Unit,
     onArtistClick: (String) -> Unit,
+    onRequestArtistClick: () -> Unit,
     onProfileClick: () -> Unit,
     onFavoritesClick: () -> Unit = {},
+    onFlashDealsClick: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -259,7 +261,18 @@ fun ExploreScreen(
                     }
                 },
                 onProfileClick = onProfileClick,
-                onFavoritesClick = onFavoritesClick
+                onFavoritesClick = onFavoritesClick,
+                onFlashDealsClick = onFlashDealsClick,
+                userName = state.userName
+            )
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = onRequestArtistClick,
+                icon = { Icon(Icons.Filled.FlashOn, contentDescription = "On-Demand") },
+                text = { Text("Request Now") },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             )
         },
         modifier = modifier,
@@ -371,7 +384,9 @@ private fun MeheiTopBar(
     isLocating: Boolean,
     onLocationClick: () -> Unit,
     onProfileClick: () -> Unit = {},
-    onFavoritesClick: () -> Unit = {}
+    onFavoritesClick: () -> Unit = {},
+    onFlashDealsClick: () -> Unit = {},
+    userName: String? = null
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "location_pulse")
     val pulseAlpha by infiniteTransition.animateFloat(
@@ -388,7 +403,7 @@ private fun MeheiTopBar(
         title = {
             Column {
                 Text(
-                    text = "MEHEI",
+                    text = userName?.takeIf { it.isNotBlank() }?.let { "Hi, $it" } ?: "MEHEI",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
@@ -437,6 +452,13 @@ private fun MeheiTopBar(
             }
         },
         actions = {
+            IconButton(onClick = onFlashDealsClick) {
+                Icon(
+                    imageVector = Icons.Filled.FlashOn,
+                    contentDescription = "Flash Deals",
+                    tint = MeheiFlashBadge, // use the yellow color
+                )
+            }
             IconButton(onClick = onFavoritesClick) {
                 Icon(
                     imageVector = Icons.Filled.Favorite,

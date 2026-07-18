@@ -25,17 +25,30 @@ import com.mehei.app.ui.screens.checkout.CheckoutViewModel
 import com.mehei.app.ui.screens.confirm.BookingConfirmScreen
 import com.mehei.app.ui.screens.explore.ExploreScreen
 import com.mehei.app.ui.screens.explore.ExploreViewModel
+import com.mehei.app.ui.screens.favorites.FavoritesScreen
+import com.mehei.app.ui.screens.favorites.FavoritesViewModel
+import com.mehei.app.ui.screens.flashslots.FlashSlotsScreen
+import com.mehei.app.ui.screens.flashslots.FlashSlotsViewModel
 import com.mehei.app.ui.screens.history.BookingsHistoryScreen
 import com.mehei.app.ui.screens.history.BookingsHistoryViewModel
+import com.mehei.app.ui.screens.request.LiveTrackingScreen
+import com.mehei.app.ui.screens.request.MatchingScreen
+import com.mehei.app.ui.screens.request.RequestEffect
+import com.mehei.app.ui.screens.request.RequestScreen
+import com.mehei.app.ui.screens.request.RequestViewModel
+import com.mehei.app.ui.screens.payments.PaymentHistoryScreen
+import com.mehei.app.ui.screens.payments.PaymentHistoryViewModel
+import com.mehei.app.ui.screens.payments.RefundPolicyScreen
 
 @Composable
 fun MeheiNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier,
+    startDestination: Any = ExploreRoute,
 ) {
     NavHost(
         navController = navController,
-        startDestination = ExploreRoute,
+        startDestination = startDestination,
         modifier = modifier,
         enterTransition = {
             fadeIn(animationSpec = tween(300)) + slideInHorizontally(
@@ -62,6 +75,55 @@ fun MeheiNavHost(
             )
         }
     ) {
+        composable<RequestRoute> {
+            val viewModel: RequestViewModel = hiltViewModel()
+            val state by viewModel.state.collectAsState()
+
+            LaunchedEffect(viewModel.effects) {
+                viewModel.effects.collect { effect ->
+                    when (effect) {
+                        is RequestEffect.NavigateToMatching -> {
+                            navController.navigate(MatchingRoute(effect.requestId))
+                        }
+                        is RequestEffect.ShowError -> {}
+                    }
+                }
+            }
+
+            RequestScreen(
+                state = state,
+                onEvent = viewModel::onEvent,
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable<MatchingRoute> { backStackEntry ->
+            val route = backStackEntry.toRoute<MatchingRoute>()
+            MatchingScreen(
+                requestId = route.requestId,
+                onMatchFound = { bookingId ->
+                    navController.navigate(LiveTrackingRoute(bookingId)) {
+                        popUpTo(RequestRoute) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable<LiveTrackingRoute> { backStackEntry ->
+            val route = backStackEntry.toRoute<LiveTrackingRoute>()
+            LiveTrackingScreen(
+                bookingId = route.bookingId,
+                onBackClick = {
+                    navController.navigate(ExploreRoute) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+                onChatClick = { bookingId, customerName ->
+                    navController.navigate(ChatRoute(bookingId, customerName))
+                }
+            )
+        }
+
         composable<ExploreRoute> {
             val viewModel: ExploreViewModel = hiltViewModel()
             val state by viewModel.state.collectAsState()
@@ -72,12 +134,31 @@ fun MeheiNavHost(
                 onArtistClick = { artistId ->
                     navController.navigate(ArtistDetailRoute(artistId))
                 },
+                onRequestArtistClick = {
+                    navController.navigate(RequestRoute)
+                },
                 onProfileClick = {
                     navController.navigate(ProfileRoute)
                 },
                 onFavoritesClick = {
                     navController.navigate(FavoritesRoute)
+                },
+                onFlashDealsClick = {
+                    navController.navigate(FlashSlotsRoute)
                 }
+            )
+        }
+
+        composable<FlashSlotsRoute> {
+            val viewModel: FlashSlotsViewModel = hiltViewModel()
+            val state by viewModel.state.collectAsState()
+
+            FlashSlotsScreen(
+                state = state,
+                onArtistClick = { artistId ->
+                    navController.navigate(ArtistDetailRoute(artistId))
+                },
+                onBackClick = { navController.popBackStack() }
             )
         }
 
@@ -191,6 +272,12 @@ fun MeheiNavHost(
                 onNavigateToHistory = {
                     navController.navigate(BookingsHistoryRoute)
                 },
+                onNavigateToPayments = {
+                    navController.navigate(PaymentHistoryRoute)
+                },
+                onNavigateToRefundPolicy = {
+                    navController.navigate(RefundPolicyRoute)
+                },
                 onNavigateToSettings = {
                     navController.navigate(SettingsRoute)
                 },
@@ -204,6 +291,22 @@ fun MeheiNavHost(
                         popUpTo(0) { inclusive = true }
                     }
                 }
+            )
+        }
+
+        composable<FavoritesRoute> {
+            val viewModel: FavoritesViewModel = hiltViewModel()
+            val state by viewModel.state.collectAsState()
+
+            FavoritesScreen(
+                state = state,
+                onArtistClick = { artistId ->
+                    navController.navigate(ArtistDetailRoute(artistId))
+                },
+                onRemoveFavorite = { artistId ->
+                    viewModel.removeFavorite(artistId)
+                },
+                onBackClick = { navController.popBackStack() }
             )
         }
 
@@ -275,6 +378,22 @@ fun MeheiNavHost(
 
         composable<ArtistPortfolioRoute> {
             com.mehei.app.ui.screens.artist.portfolio.ArtistPortfolioScreen(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable<PaymentHistoryRoute> {
+            val viewModel: PaymentHistoryViewModel = hiltViewModel()
+            val state by viewModel.state.collectAsState()
+            PaymentHistoryScreen(
+                state = state,
+                onRequestRefund = { /* TODO: initiate refund flow */ },
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable<RefundPolicyRoute> {
+            RefundPolicyScreen(
                 onBackClick = { navController.popBackStack() }
             )
         }

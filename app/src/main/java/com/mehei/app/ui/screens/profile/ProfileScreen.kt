@@ -11,7 +11,9 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.PersonOutline
+import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -29,6 +31,8 @@ import com.mehei.app.ui.modifiers.bounceClick
 fun ProfileScreen(
     state: ProfileState,
     onNavigateToHistory: () -> Unit,
+    onNavigateToPayments: () -> Unit,
+    onNavigateToRefundPolicy: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onLogout: () -> Unit,
     onSwitchToArtistMode: () -> Unit,
@@ -121,6 +125,18 @@ fun ProfileScreen(
                         icon = Icons.Filled.CreditCard,
                         title = "Payment Methods",
                         onClick = { }
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    ProfileMenuItem(
+                        icon = Icons.Filled.Payments,
+                        title = "Payment History",
+                        onClick = onNavigateToPayments
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    ProfileMenuItem(
+                        icon = Icons.Filled.Policy,
+                        title = "Refund & Cancellation Policy",
+                        onClick = onNavigateToRefundPolicy
                     )
                 }
             }

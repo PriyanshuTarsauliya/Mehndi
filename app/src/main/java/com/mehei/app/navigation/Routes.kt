@@ -13,6 +13,16 @@ data object ExploreRoute
 @Serializable
 data object FlashSlotsRoute
 
+// --- Request Flow ---
+@Serializable
+data object RequestRoute
+
+@Serializable
+data class MatchingRoute(val requestId: String)
+
+@Serializable
+data class LiveTrackingRoute(val bookingId: String)
+
 @Serializable
 data class ArtistDetailRoute(val artistId: String)
 
@@ -58,3 +68,11 @@ data object ArtistPortfolioRoute
 
 @Serializable
 data class ChatRoute(val bookingId: String, val otherUserName: String)
+
+// --- Payment Routes ---
+
+@Serializable
+data object PaymentHistoryRoute
+
+@Serializable
+data object RefundPolicyRoute

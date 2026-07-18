@@ -1,8 +1,13 @@
 package com.mehei.backend.entity;
 
 public enum BookingStatus {
-    PENDING,
-    CONFIRMED,
+    REQUESTED,
+    MATCHING,
+    ACCEPTED,
+    ON_THE_WAY,
+    ARRIVED,
+    IN_PROGRESS,
     COMPLETED,
-    CANCELLED
+    CANCELLED,
+    NO_SHOW
 }

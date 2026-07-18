@@ -18,6 +18,7 @@ data class ExploreState(
     val locationDenied: Boolean = false,
     val userLat: Double? = null,
     val userLng: Double? = null,
+    val userName: String? = null,
 )
 
 sealed interface ExploreEvent {

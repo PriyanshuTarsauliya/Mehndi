@@ -69,7 +69,7 @@ fun ArtistBookingDetailScreen(
             val haptic = LocalHapticFeedback.current
             state.booking?.let { booking ->
                 AnimatedVisibility(
-                    visible = booking.status == BookingStatus.PENDING,
+                    visible = booking.status == BookingStatus.REQUESTED,
                     enter = expandVertically(),
                     exit = shrinkVertically()
                 ) {
