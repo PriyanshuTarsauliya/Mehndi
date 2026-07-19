@@ -9,4 +9,7 @@ sealed interface AuthEvent {
     data object SendOtp : AuthEvent
     data object VerifyOtp : AuthEvent
     data object CompleteSetup : AuthEvent
+    data class PasswordChanged(val password: String) : AuthEvent
+    data object ToggleLoginMode : AuthEvent
+    data object LoginWithEmail : AuthEvent
 }

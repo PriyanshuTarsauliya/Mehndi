@@ -11,9 +11,11 @@ data class AuthResponse(
     val phoneNumber: String,
     val name: String?,
     val role: String,
-    val isNewUser: Boolean
+    val isNewUser: Boolean,
+    val profileImageUrl: String? = null
 )
 data class ProfileSetupRequest(val name: String, val email: String?, val role: String)
+data class ProfileImageResponse(val profileImageUrl: String)
 data class ArtistProfileResponse(
     val id: String,
     val name: String,
@@ -45,6 +47,10 @@ interface MeheiApiService {
 
     @POST("api/auth/setup-profile")
     suspend fun setupProfile(@Body request: ProfileSetupRequest): Response<AuthResponse>
+
+    @Multipart
+    @POST("api/profile/upload-image")
+    suspend fun uploadProfileImage(@Part file: okhttp3.MultipartBody.Part): Response<ProfileImageResponse>
 
     @GET("api/artists")
     suspend fun getArtists(): Response<List<ArtistProfileResponse>>

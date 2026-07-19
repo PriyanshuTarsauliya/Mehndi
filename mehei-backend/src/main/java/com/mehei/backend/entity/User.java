@@ -26,6 +26,9 @@ public class User {
     @Column(name = "email")
     private String email;
 
+    @Column(name = "profile_image_url")
+    private String profileImageUrl;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     private Role role;

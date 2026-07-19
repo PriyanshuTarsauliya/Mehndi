@@ -19,7 +19,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.mehei.app.navigation.BottomNavItem
 import com.mehei.app.navigation.BookingsHistoryRoute
-import com.mehei.app.navigation.ExploreRoute
+import com.mehei.app.navigation.RequestRoute
 import com.mehei.app.navigation.LoginRoute
 import com.mehei.app.navigation.MeheiNavHost
 import com.mehei.app.navigation.ProfileRoute
@@ -45,7 +45,7 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
 
     // Top-level routes where the bottom bar should be visible
     private val topLevelRoutes = setOf(
-        ExploreRoute::class.qualifiedName,
+        RequestRoute::class.qualifiedName,
         BookingsHistoryRoute::class.qualifiedName,
         ProfileRoute::class.qualifiedName,
     )
@@ -59,7 +59,7 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
         enableEdgeToEdge()
         setContent {
             MeheiTheme {
-                val startDestination = if (tokenManager.getToken() != null) ExploreRoute else LoginRoute
+                val startDestination = if (tokenManager.getToken() != null) RequestRoute else LoginRoute
                 val navController = rememberNavController()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 

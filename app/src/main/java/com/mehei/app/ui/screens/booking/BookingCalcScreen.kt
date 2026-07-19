@@ -22,7 +22,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.style.TextAlign
 import com.mehei.app.domain.model.Complexity
 import com.mehei.app.domain.model.EventType
 import com.mehei.app.ui.theme.MeheiFlashBadge
@@ -39,6 +39,7 @@ fun BookingCalcScreen(
     modifier: Modifier = Modifier,
 ) {
     val artist = state.artist
+    var isFindingArtist by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -118,8 +119,6 @@ fun BookingCalcScreen(
         }
 
         // Add a Finding Artist dialog state
-        var isFindingArtist by remember { mutableStateOf(false) }
-
         if (isFindingArtist) {
             AlertDialog(
                 onDismissRequest = { isFindingArtist = false },

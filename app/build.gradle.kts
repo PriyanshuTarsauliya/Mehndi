@@ -61,6 +61,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.play.services.location)
+    implementation(libs.maps.compose)
 
     // Navigation
     implementation(libs.androidx.navigation.compose)

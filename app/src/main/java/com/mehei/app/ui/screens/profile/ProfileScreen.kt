@@ -14,14 +14,30 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.PersonOutline
 import androidx.compose.material.icons.filled.Policy
+import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.File
+import java.io.FileOutputStream
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.mehei.app.ui.modifiers.bounceClick
@@ -30,14 +46,38 @@ import com.mehei.app.ui.modifiers.bounceClick
 @Composable
 fun ProfileScreen(
     state: ProfileState,
+    onNavigateToPersonalDetails: () -> Unit,
     onNavigateToHistory: () -> Unit,
+    onNavigateToPaymentMethods: () -> Unit,
     onNavigateToPayments: () -> Unit,
     onNavigateToRefundPolicy: () -> Unit,
     onNavigateToSettings: () -> Unit,
+    onNavigateToHelpSupport: () -> Unit,
     onLogout: () -> Unit,
     onSwitchToArtistMode: () -> Unit,
+    onUploadImage: (MultipartBody.Part) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            uri?.let {
+                // Copy URI to a temporary file for Retrofit
+                val inputStream = context.contentResolver.openInputStream(it)
+                val tempFile = File.createTempFile("profile", ".jpg", context.cacheDir)
+                val outputStream = FileOutputStream(tempFile)
+                inputStream?.copyTo(outputStream)
+                inputStream?.close()
+                outputStream.close()
+
+                val requestFile = tempFile.asRequestBody("image/*".toMediaTypeOrNull())
+                val body = MultipartBody.Part.createFormData("file", tempFile.name, requestFile)
+                onUploadImage(body)
+            }
+        }
+    )
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -73,15 +113,36 @@ fun ProfileScreen(
                                     MaterialTheme.colorScheme.tertiary,
                                 )
                             )
-                        ),
+                        )
+                        .bounceClick {
+                            photoPickerLauncher.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                        },
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(
-                        text = state.initial,
-                        style = MaterialTheme.typography.displaySmall,
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        fontWeight = FontWeight.Bold,
-                    )
+                    if (state.profileImageUrl != null) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(state.profileImageUrl)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = "Profile Picture",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        Text(
+                            text = state.initial,
+                            style = MaterialTheme.typography.displaySmall,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                    if (state.isUploading) {
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.width(16.dp))
@@ -112,7 +173,7 @@ fun ProfileScreen(
                     ProfileMenuItem(
                         icon = Icons.Filled.PersonOutline,
                         title = "Personal Details",
-                        onClick = { }
+                        onClick = onNavigateToPersonalDetails
                     )
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     ProfileMenuItem(
@@ -124,7 +185,7 @@ fun ProfileScreen(
                     ProfileMenuItem(
                         icon = Icons.Filled.CreditCard,
                         title = "Payment Methods",
-                        onClick = { }
+                        onClick = onNavigateToPaymentMethods
                     )
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     ProfileMenuItem(
@@ -158,7 +219,7 @@ fun ProfileScreen(
                     ProfileMenuItem(
                         icon = Icons.AutoMirrored.Filled.HelpOutline,
                         title = "Help & Support",
-                        onClick = { }
+                        onClick = onNavigateToHelpSupport
                     )
                 }
             }

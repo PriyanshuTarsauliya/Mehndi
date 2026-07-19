@@ -14,10 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.security.SecureRandom;
-import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class AuthService {
@@ -27,51 +23,28 @@ public class AuthService {
     private final UserRepository userRepository;
     private final ArtistProfileRepository artistProfileRepository;
     private final JwtUtil jwtUtil;
-    private final SecureRandom secureRandom = new SecureRandom();
+    private final TwilioSmsService twilioSmsService;
 
-    private record OtpDetails(String code, LocalDateTime expiryTime) {}
-
-    // Temporary storage for OTP codes
-    private final Map<String, OtpDetails> otpStorage = new ConcurrentHashMap<>();
-
-    public AuthService(UserRepository userRepository, ArtistProfileRepository artistProfileRepository, JwtUtil jwtUtil) {
+    public AuthService(UserRepository userRepository, ArtistProfileRepository artistProfileRepository, JwtUtil jwtUtil, TwilioSmsService twilioSmsService) {
         this.userRepository = userRepository;
         this.artistProfileRepository = artistProfileRepository;
         this.jwtUtil = jwtUtil;
+        this.twilioSmsService = twilioSmsService;
     }
 
     public void sendOtp(String phoneNumber) {
-        // Generate a random 6-digit OTP
-        int otpNum = 100000 + secureRandom.nextInt(900000);
-        String otpCode = String.valueOf(otpNum);
-        
-        // OTP expires in 5 minutes
-        OtpDetails details = new OtpDetails(otpCode, LocalDateTime.now().plusMinutes(5));
-        otpStorage.put(phoneNumber, details);
-        
-        log.info("OTP_SERVICE: Generated OTP code {} for phone number {}", otpCode, phoneNumber);
-        // TODO: Integrate actual SMS gateway (e.g., Twilio, AWS SNS, etc.) here
+        log.info("OTP_SERVICE: Requesting Twilio to send verification code to {}", phoneNumber);
+        twilioSmsService.sendVerificationCode(phoneNumber);
     }
 
     @Transactional
     public AuthResponse verifyOtp(String phoneNumber, String otpCode) {
-        OtpDetails storedOtpDetails = otpStorage.get(phoneNumber);
+        // Verify the code via Twilio
+        boolean isValid = twilioSmsService.checkVerificationCode(phoneNumber, otpCode);
         
-        if (storedOtpDetails == null) {
+        if (!isValid) {
             throw new BadRequestException("Invalid or expired OTP code");
         }
-        
-        if (LocalDateTime.now().isAfter(storedOtpDetails.expiryTime())) {
-            otpStorage.remove(phoneNumber);
-            throw new BadRequestException("OTP code has expired");
-        }
-        
-        if (!storedOtpDetails.code().equals(otpCode)) {
-            throw new BadRequestException("Invalid OTP code");
-        }
-
-        // Clean up OTP after successful verification
-        otpStorage.remove(phoneNumber);
 
         boolean isNewUser = false;
         User user = userRepository.findByPhoneNumber(phoneNumber).orElse(null);

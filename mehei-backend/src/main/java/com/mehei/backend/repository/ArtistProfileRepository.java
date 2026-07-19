@@ -7,4 +7,5 @@ import java.util.UUID;
 
 public interface ArtistProfileRepository extends JpaRepository<ArtistProfile, UUID> {
     List<ArtistProfile> findByAvailableTrue();
+    List<ArtistProfile> findByIsOnlineTrue();
 }

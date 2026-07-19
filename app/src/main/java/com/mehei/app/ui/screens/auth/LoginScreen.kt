@@ -14,6 +14,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,6 +25,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
@@ -31,6 +36,7 @@ fun LoginScreen(
     onEvent: (AuthEvent) -> Unit,
     onLoginSuccess: () -> Unit,
     onNavigateToSetup: () -> Unit,
+    onNavigateToForgotPassword: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LaunchedEffect(state.isOtpVerified) {
@@ -94,73 +100,163 @@ fun LoginScreen(
                             .animateContentSize(animationSpec = spring()),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        // Phone Input
-                        OutlinedTextField(
-                            value = state.phoneNumber,
-                            onValueChange = { onEvent(AuthEvent.PhoneNumberChanged(it)) },
-                            label = { Text("Phone Number") },
-                            prefix = { Text("+91 ") },
-                            leadingIcon = {
-                                Icon(Icons.Filled.Phone, contentDescription = "Phone")
-                            },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
-                            enabled = !state.isOtpSent && !state.isLoading,
-                            singleLine = true,
-                        )
+                        if (state.isLoginWithEmail) {
+                            var passwordVisible by remember { mutableStateOf(false) }
 
-                        AnimatedVisibility(
-                            visible = state.isOtpSent,
-                            enter = fadeIn() + expandVertically(spring()),
-                            exit = fadeOut() + shrinkVertically(spring())
-                        ) {
-                            Column {
-                                Spacer(modifier = Modifier.height(16.dp))
-                                OutlinedTextField(
-                                    value = state.otpCode,
-                                    onValueChange = { onEvent(AuthEvent.OtpCodeChanged(it)) },
-                                    label = { Text("6-digit OTP") },
-                                    leadingIcon = {
-                                        Icon(Icons.Filled.Lock, contentDescription = "OTP")
-                                    },
-                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                    modifier = Modifier.fillMaxWidth(),
-                                    shape = RoundedCornerShape(16.dp),
-                                    enabled = !state.isLoading,
-                                    singleLine = true,
-                                )
+                            // Email Input
+                            OutlinedTextField(
+                                value = state.email,
+                                onValueChange = { onEvent(AuthEvent.EmailChanged(it)) },
+                                label = { Text("Email Address") },
+                                leadingIcon = {
+                                    Icon(Icons.Filled.Email, contentDescription = "Email")
+                                },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp),
+                                enabled = !state.isLoading,
+                                singleLine = true,
+                            )
+                            
+                            Spacer(modifier = Modifier.height(16.dp))
+                            
+                            // Password Input
+                            OutlinedTextField(
+                                value = state.password,
+                                onValueChange = { onEvent(AuthEvent.PasswordChanged(it)) },
+                                label = { Text("Password") },
+                                leadingIcon = {
+                                    Icon(Icons.Filled.Lock, contentDescription = "Password")
+                                },
+                                trailingIcon = {
+                                    val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                        Icon(imageVector = image, contentDescription = "Toggle password visibility")
+                                    }
+                                },
+                                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp),
+                                enabled = !state.isLoading,
+                                singleLine = true,
+                            )
+                            
+                            Spacer(modifier = Modifier.height(8.dp))
+                            
+                            // Forgot Password Link
+                            TextButton(
+                                onClick = onNavigateToForgotPassword,
+                                modifier = Modifier.align(Alignment.End)
+                            ) {
+                                Text("Forgot Password?", color = MaterialTheme.colorScheme.primary)
+                            }
+                            
+                            Spacer(modifier = Modifier.height(16.dp))
+                            
+                            // Login Button
+                            Button(
+                                onClick = { onEvent(AuthEvent.LoginWithEmail) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp),
+                                shape = RoundedCornerShape(16.dp),
+                                enabled = !state.isLoading && state.email.isNotBlank() && state.password.isNotBlank()
+                            ) {
+                                if (state.isLoading) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(24.dp),
+                                        color = MaterialTheme.colorScheme.onPrimary,
+                                        strokeWidth = 2.dp
+                                    )
+                                } else {
+                                    Text(
+                                        text = "Login",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                    )
+                                }
+                            }
+                        } else {
+                            // Phone Input
+                            OutlinedTextField(
+                                value = state.phoneNumber,
+                                onValueChange = { onEvent(AuthEvent.PhoneNumberChanged(it)) },
+                                label = { Text("Phone Number") },
+                                prefix = { Text("+91 ") },
+                                leadingIcon = {
+                                    Icon(Icons.Filled.Phone, contentDescription = "Phone")
+                                },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp),
+                                enabled = !state.isOtpSent && !state.isLoading,
+                                singleLine = true,
+                            )
+    
+                            AnimatedVisibility(
+                                visible = state.isOtpSent,
+                                enter = fadeIn() + expandVertically(spring()),
+                                exit = fadeOut() + shrinkVertically(spring())
+                            ) {
+                                Column {
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    OutlinedTextField(
+                                        value = state.otpCode,
+                                        onValueChange = { onEvent(AuthEvent.OtpCodeChanged(it)) },
+                                        label = { Text("6-digit OTP") },
+                                        leadingIcon = {
+                                            Icon(Icons.Filled.Lock, contentDescription = "OTP")
+                                        },
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                        modifier = Modifier.fillMaxWidth(),
+                                        shape = RoundedCornerShape(16.dp),
+                                        enabled = !state.isLoading,
+                                        singleLine = true,
+                                    )
+                                }
+                            }
+    
+                            Spacer(modifier = Modifier.height(24.dp))
+    
+                            // Main Action Button
+                            Button(
+                                onClick = {
+                                    if (state.isOtpSent) onEvent(AuthEvent.VerifyOtp)
+                                    else onEvent(AuthEvent.SendOtp)
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp),
+                                shape = RoundedCornerShape(16.dp),
+                                enabled = !state.isLoading && 
+                                        (if (state.isOtpSent) state.otpCode.length == 6 else state.phoneNumber.length >= 10)
+                            ) {
+                                if (state.isLoading) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(24.dp),
+                                        color = MaterialTheme.colorScheme.onPrimary,
+                                        strokeWidth = 2.dp
+                                    )
+                                } else {
+                                    Text(
+                                        text = if (state.isOtpSent) "Verify & Login" else "Send OTP",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                    )
+                                }
                             }
                         }
-
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        // Main Action Button
-                        Button(
-                            onClick = {
-                                if (state.isOtpSent) onEvent(AuthEvent.VerifyOtp)
-                                else onEvent(AuthEvent.SendOtp)
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(56.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            enabled = !state.isLoading && 
-                                    (if (state.isOtpSent) state.otpCode.length == 6 else state.phoneNumber.length >= 10)
-                        ) {
-                            if (state.isLoading) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(24.dp),
-                                    color = MaterialTheme.colorScheme.onPrimary,
-                                    strokeWidth = 2.dp
-                                )
-                            } else {
-                                Text(
-                                    text = if (state.isOtpSent) "Verify & Login" else "Send OTP",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                )
-                            }
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        // Toggle Login Mode
+                        TextButton(onClick = { onEvent(AuthEvent.ToggleLoginMode) }) {
+                            Text(
+                                text = if (state.isLoginWithEmail) "Login with Phone Number instead" else "Login with Email instead",
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.SemiBold
+                            )
                         }
                     }
                 }

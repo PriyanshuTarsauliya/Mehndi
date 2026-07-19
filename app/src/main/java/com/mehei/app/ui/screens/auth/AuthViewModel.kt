@@ -20,6 +20,8 @@ data class AuthState(
     val isOtpVerified: Boolean = false,
     val name: String = "",
     val email: String = "",
+    val password: String = "",
+    val isLoginWithEmail: Boolean = false,
     val role: String = "CLIENT",
     val isProfileSetupComplete: Boolean = false
 )
@@ -43,6 +45,9 @@ class AuthViewModel @Inject constructor(
             AuthEvent.SendOtp -> sendOtp()
             AuthEvent.VerifyOtp -> verifyOtp()
             AuthEvent.CompleteSetup -> completeProfileSetup()
+            is AuthEvent.PasswordChanged -> _state.update { it.copy(password = event.password) }
+            AuthEvent.ToggleLoginMode -> _state.update { it.copy(isLoginWithEmail = !it.isLoginWithEmail) }
+            AuthEvent.LoginWithEmail -> loginWithEmail()
         }
     }
 
@@ -100,6 +105,9 @@ class AuthViewModel @Inject constructor(
                     tokenManager.saveUserPhone(authResponse.phoneNumber)
                     tokenManager.saveUserName(authResponse.name ?: "")
                     tokenManager.saveUserRole(authResponse.role)
+                    if (authResponse.profileImageUrl != null) {
+                        tokenManager.saveProfileImageUrl(authResponse.profileImageUrl)
+                    }
 
                     _state.update { 
                         it.copy(
@@ -136,12 +144,32 @@ class AuthViewModel @Inject constructor(
                     tokenManager.saveToken(authResponse.token)
                     tokenManager.saveUserRole(authResponse.role)
                     tokenManager.saveUserName(authResponse.name ?: "")
+                    if (authResponse.profileImageUrl != null) {
+                        tokenManager.saveProfileImageUrl(authResponse.profileImageUrl)
+                    }
                     _state.update { it.copy(isProfileSetupComplete = true, isLoading = false) }
                 } else {
                     _state.update { it.copy(isLoading = false) }
                 }
             } catch (e: Exception) {
                 _state.update { it.copy(isLoading = false) }
+            }
+        }
+    }
+
+    private fun loginWithEmail() {
+        if (_state.value.email.isBlank() || _state.value.password.isBlank()) return
+        
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true) }
+            // Mocking email login for now since backend doesn't support it yet
+            kotlinx.coroutines.delay(1000)
+            _state.update { 
+                it.copy(
+                    isOtpVerified = true, 
+                    isLoading = false,
+                    isProfileSetupComplete = true
+                ) 
             }
         }
     }

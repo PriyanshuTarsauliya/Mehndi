@@ -1,0 +1,10 @@
+feat: Add payments, flash slots, chat, and refund policies
+
+Added several missing features to complete the core user and artist flows.
+
+Why these features were added:
+- Payments & Refund Policy: To allow customers to securely checkout, process payments, tip artists, and view cancellation/refund policies directly in the app. Backend tracking was added via PaymentTransaction.
+- Flash Slots: To allow users to browse and book discounted, immediate slots offered by artists. This adds a critical "on-demand" layer to the app. Added FlashSlot entity and APIs.
+- Chat Integration: Added a Chat button to the Live Tracking screen so customers and artists can seamlessly communicate while the artist is en route. Added ChatMessage entity and APIs.
+- Request Refactoring: Updated default enums for booking requests to match the domain model (e.g. PARTY/TRADITIONAL).
+- Favorites Wiring: Fixed a missing route for the Favorites screen in the navigation graph to prevent crashes and allow users to view their saved artists.

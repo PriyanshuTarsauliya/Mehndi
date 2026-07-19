@@ -43,7 +43,7 @@ public class BookingService {
         Booking booking = Booking.builder()
                 .client(client)
                 .artist(artist)
-                .status(BookingStatus.PENDING)
+                .status(BookingStatus.REQUESTED)
                 .amount(request.amount())
                 .createdAt(LocalDateTime.now())
                 .build();

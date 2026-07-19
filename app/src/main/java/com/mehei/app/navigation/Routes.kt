@@ -7,8 +7,7 @@ import kotlinx.serialization.Serializable
  * Using Compose Navigation 2.8+ @Serializable pattern.
  */
 
-@Serializable
-data object ExploreRoute
+
 
 @Serializable
 data object FlashSlotsRoute
@@ -36,6 +35,9 @@ data class BookingConfirmRoute(val bookingId: String)
 data object LoginRoute
 
 @Serializable
+data object ForgotPasswordRoute
+
+@Serializable
 data object ProfileSetupRoute
 
 @Serializable
@@ -48,8 +50,25 @@ data object BookingsHistoryRoute
 data object ProfileRoute
 
 @Serializable
+data object PersonalDetailsRoute
+
+@Serializable
+data object PaymentMethodsRoute
+
+@Serializable
+data object HelpSupportRoute
+
+@Serializable
 data object SettingsRoute
 
+@Serializable
+data object PrivacyPolicyRoute
+
+@Serializable
+data object TermsOfServiceRoute
+
+@Serializable
+data class ArtistNavigationRoute(val bookingId: String)
 @Serializable
 data object FavoritesRoute
 

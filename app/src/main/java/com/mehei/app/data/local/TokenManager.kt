@@ -51,6 +51,14 @@ class TokenManager @Inject constructor(
         return prefs.getString("user_role", null)
     }
 
+    fun saveProfileImageUrl(url: String) {
+        prefs.edit().putString("profile_image_url", url).apply()
+    }
+
+    fun getProfileImageUrl(): String? {
+        return prefs.getString("profile_image_url", null)
+    }
+
     fun clear() {
         prefs.edit().clear().apply()
     }

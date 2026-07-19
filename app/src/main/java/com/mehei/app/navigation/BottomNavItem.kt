@@ -22,7 +22,7 @@ sealed class BottomNavItem(
     val contentDescription: String,
 ) {
     data object Home : BottomNavItem(
-        route = ExploreRoute,
+        route = RequestRoute,
         label = "Home",
         selectedIcon = Icons.Filled.Home,
         unselectedIcon = Icons.Outlined.Home,
@@ -30,7 +30,7 @@ sealed class BottomNavItem(
     )
 
     data object Explore : BottomNavItem(
-        route = ExploreRoute,  // Same route for now — can be separated later
+        route = RequestRoute,  // Same route for now — can be separated later
         label = "Explore",
         selectedIcon = Icons.Filled.Explore,
         unselectedIcon = Icons.Outlined.Explore,

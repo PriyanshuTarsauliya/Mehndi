@@ -27,11 +27,14 @@ import com.mehei.app.ui.modifiers.bounceClick
 fun SettingsScreen(
     state: SettingsState,
     onEvent: (SettingsEvent) -> Unit,
+    onNavigateToPrivacyPolicy: () -> Unit,
+    onNavigateToTermsOfService: () -> Unit,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var showEmailDialog by remember { mutableStateOf(false) }
     var showLanguageDialog by remember { mutableStateOf(false) }
+    var showDeleteAccountDialog by remember { mutableStateOf(false) }
 
     if (showEmailDialog) {
         var emailInput by remember { mutableStateOf(state.email) }
@@ -95,6 +98,30 @@ fun SettingsScreen(
             confirmButton = {},
             dismissButton = {
                 TextButton(onClick = { showLanguageDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    if (showDeleteAccountDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteAccountDialog = false },
+            title = { Text("Delete Account") },
+            text = { Text("Are you sure you want to delete your account? This action cannot be undone and you will lose all your data.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        // TODO: Implement actual deletion logic, for now we just close the dialog.
+                        showDeleteAccountDialog = false
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteAccountDialog = false }) {
                     Text("Cancel")
                 }
             }
@@ -210,13 +237,13 @@ fun SettingsScreen(
                     SettingsItem(
                         icon = Icons.Filled.Policy,
                         title = "Privacy Policy",
-                        onClick = { /* TODO: Open Privacy Policy */ }
+                        onClick = onNavigateToPrivacyPolicy
                     )
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     SettingsItem(
                         icon = Icons.Filled.Info,
                         title = "Terms of Service",
-                        onClick = { /* TODO: Open Terms of Service */ }
+                        onClick = onNavigateToTermsOfService
                     )
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     SettingsItem(
@@ -226,6 +253,26 @@ fun SettingsScreen(
                         showArrow = false
                     )
                 }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Delete Account Button
+            OutlinedButton(
+                onClick = { showDeleteAccountDialog = true },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text(
+                    text = "Delete Account",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
             }
             
             Spacer(modifier = Modifier.height(16.dp))
